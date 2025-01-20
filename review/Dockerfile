@@ -1,14 +1,20 @@
 # build stage
-FROM golang:latest AS builder
+# It is better to use mutlistage build, because you will not have source code in docker image.
+# Also in case of issue, you can copy any sensetive configs to docker image
+# You docker image will be lighter
+FROM golang:1.23.2 AS builder
 
-RUN apk add git gcc libc-dev
+WORKDIR /go/src/coupon
 
-WORKDIR /go/src/coupon-service
+COPY cmd cmd
+COPY internal internal
+COPY go.mod go.mod
+COPY go.sum go.sum
 
-COPY . .
+RUN go build -o bin/coupon/main cmd/coupon/main.go
 
-WORKDIR /go/src/coupon-service/cmd/export
-RUN go build -o main .
-
-ENTRYPOINT ./main
-EXPOSE 8080
+FROM alpine:latest as base
+RUN apk add bash nano build-base gcompat
+WORKDIR /app
+COPY --from=builder /go/src/coupon/bin/coupon/main ./
+CMD ["/app/main"]

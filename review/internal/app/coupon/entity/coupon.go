@@ -1,7 +1,8 @@
 package entity
 
 type Coupon struct {
-	Discount       int
+	ID             string
 	Code           string
+	Discount       int
 	MinBasketValue int
 }
